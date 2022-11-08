@@ -39,7 +39,11 @@ async function run() {
       res.send(service);
     });
 
-    
+    app.post("/addServices", async (req, res) => {
+      const service = req.body;
+      const result = await serviceCollection.insertOne(service);
+      res.send(result);
+    });
 
   } finally {
   }
