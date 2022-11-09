@@ -48,30 +48,37 @@ async function run() {
 
     //  add Review
 
-    app.post('/review', async(req, res) => {
+    app.post("/review", async (req, res) => {
       const review = req.body;
-      const result = await reviewCollection.insertOne(review)
-      res.send(result)
-    })
+      const result = await reviewCollection.insertOne(review);
+      res.send(result);
+    });
 
-    app.get('/review', async (req, res) => {
+    app.get("/review", async (req, res) => {
       const name = req.query.serviceName;
       const query = { serviceName: name };
       const result = await reviewCollection.find(query).toArray();
       res.send(result);
-    })
+    });
 
     // My Review
 
-    app.get('/MyReview', async (req, res) => {
+    app.get("/MyReview", async (req, res) => {
       const email = req.query.email;
       // console.log(email);
-      const query = { email }
+      const query = { email };
       const result = await reviewCollection.find(query).toArray();
       res.send(result);
-      
-    })
+    });
 
+    // Delete Review
+
+    app.delete("/review/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await ordersCollection.deleteOne(query);
+      res.send(result);
+    });
   } finally {
   }
 }
