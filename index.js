@@ -73,10 +73,25 @@ async function run() {
 
     // Delete Review
 
-    app.delete("/review/:id", async (req, res) => {
+    app.delete("/reviewDelete/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
-      const result = await ordersCollection.deleteOne(query);
+      const service = await reviewCollection.deleteOne(query);
+      res.send(service);
+    });
+
+    // update Review
+
+    app.patch("/reviewUpdate/:id", async (req, res) => {
+      const id = req.params.id;
+      const status = req.body.status;
+      const query = { _id: ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: status,
+        },
+      };
+      const result = await reviewCollection.updateOne(query, updateDoc);
       res.send(result);
     });
   } finally {
