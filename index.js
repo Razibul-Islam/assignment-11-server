@@ -61,6 +61,17 @@ async function run() {
       res.send(result);
     })
 
+    // My Review
+
+    app.get('/MyReview', async (req, res) => {
+      const email = req.query.email;
+      // console.log(email);
+      const query = { email }
+      const result = await reviewCollection.find(query).toArray();
+      res.send(result);
+      
+    })
+
   } finally {
   }
 }
@@ -73,7 +84,7 @@ app.get("/", (req, res) => {
 
 app.listen(port, () => {
   client.connect((err) => {
-    console.log(err);
+    // console.log(err);
   });
 
   console.log(`this is assignment server running on ${port} port`);
