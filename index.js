@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
+const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const port = process.env.PORT || 5000;
@@ -15,20 +16,43 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    res.status(401).send({ message: "unauthorize access" });
+  }
+  const token = authHeader.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRETE, function (err, decoded) {
+    if (err) {
+      res.status(401).send({ message: "unauthorize access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+}
+
 async function run() {
   try {
     const serviceCollection = client.db("Wedding-Shots").collection("service");
     const reviewCollection = client.db("Wedding-Shots").collection("review");
 
+    app.post("/jwt", (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRETE, {
+        expiresIn: "1d",
+      });
+      res.send({ token });
+    });
+
     app.get("/allServices", async (req, res) => {
-      const query = req.body;
+      const query = {};
       const cursor = serviceCollection.find(query);
       const services = await cursor.toArray();
       res.send(services);
     });
     app.get("/services", async (req, res) => {
-      const query = req.body;
-      const cursor = serviceCollection.find(query);
+      const query = {};
+      const cursor = serviceCollection.find(query).sort({ _id: -1 });
       const services = await cursor.limit(3).toArray();
       res.send(services);
     });
@@ -57,7 +81,10 @@ async function run() {
     app.get("/review", async (req, res) => {
       const name = req.query.serviceName;
       const query = { serviceName: name };
-      const result = await reviewCollection.find(query).toArray();
+      const result = await reviewCollection
+        .find(query)
+        
+        .toArray();
       res.send(result);
     });
 
@@ -70,7 +97,8 @@ async function run() {
 
     // My Review
 
-    app.get("/MyReview", async (req, res) => {
+    app.get("/MyReview", verifyJWT, async (req, res) => {
+      // console.log(req.headers.authorization);
       const email = req.query.email;
       // console.log(email);
       const query = { email };
@@ -122,5 +150,5 @@ app.listen(port, () => {
     // console.log(err);
   });
 
-  console.log(`this is assignment server running on ${port} port`);
+  // console.log(`this is assignment server running on ${port} port`);
 });
